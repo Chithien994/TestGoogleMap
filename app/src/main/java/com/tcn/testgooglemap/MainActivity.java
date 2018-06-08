@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener{
-    public static final int COARSE_LOCATION_PERMISSION_CODE = 123;
-    public static final int FINE_LOCATION_PERMISSION_CODE = 321;
     public static final int REQUEST_ID_ACCESS_COURSE_FINE_LOCATION = 100;
     private GoogleMap mMap;
     String loca, latitude, longitude;
@@ -206,7 +204,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             List<Address> addresses = geocoder.getFromLocation(lat, lng, 1);
             android.location.Address obj = addresses.get(0);
-
             String add = obj.getAddressLine(0)
                     + "\n" + obj.getCountryName()
                     + "\n" + obj.getCountryCode()
