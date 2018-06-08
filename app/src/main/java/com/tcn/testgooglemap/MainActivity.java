@@ -1,8 +1,10 @@
 package com.tcn.testgooglemap;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Criteria;
@@ -11,6 +13,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +21,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -40,6 +44,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        DeviceUtils.requestOpenGPS(this);
+        if (gPSOpened()){
+            getMap();
+        }
+    }
+
+    private void getMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         dialog = new ProgressDialog(this);
@@ -47,6 +58,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dialog.setCancelable(true);
         dialog.show();
         mapFragment.getMapAsync(this);
+    }
+
+    private boolean gPSOpened(){
+        String provider = Settings.Secure.getString(getContentResolver(), Settings.Secure.LOCATION_PROVIDERS_ALLOWED);
+        if(!provider.contains("gps")){ //if gps is disabled
+            return false;
+        }else {
+            return true;
+        }
     }
 
     @Override
@@ -238,5 +258,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onProviderDisabled(String s) {
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        final LocationSettingsStates states = LocationSettingsStates.fromIntent(data);
+        switch (requestCode) {
+            case DeviceUtils.REQUEST_CHECK_SETTINGS:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        // All required changes were successfully made
+                        getMap();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        // The user was asked to change settings, but chose not to
+                        if (!states.isGpsUsable()) {
+                            // Degrade gracefully depending on what is available
+
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+        }
     }
 }
